@@ -9,6 +9,8 @@ namespace WebApiTest.Models.Dto
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }
-        
+
+        public string Place { get; set; }
+
     }
 }

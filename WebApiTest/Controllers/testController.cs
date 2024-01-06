@@ -2,6 +2,7 @@
 using WebApiTest.Models;
 using WebApiTest.Models.Dto;
 using WebApiTest.Data;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace WebApiTest.Controllers
 {
@@ -79,7 +80,7 @@ namespace WebApiTest.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult<testDto> EditTest(int id, testDto obj)
+        public ActionResult<testDto> EditTest(int id,[FromBody] testDto obj)
         {
             if (id == 0)
             { return BadRequest(id); }
@@ -89,17 +90,18 @@ namespace WebApiTest.Controllers
                 return BadRequest();
             }
             person.Name = obj.Name;
+            person.Place = obj.Place;
 
             return NoContent();
         }
 
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}",Name="DeleteTest")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult <testDto> DeleteTest(int id)
+        public IActionResult DeleteTest(int id)
         {
             int index = testStore.testlist.FindIndex(x=>x.Id == id);
             if (index == -1)
@@ -108,6 +110,27 @@ namespace WebApiTest.Controllers
                
             }
             testStore.testlist.RemoveAt(index);
+            return NoContent();
+        }
+
+
+        [HttpPatch("{id:int}", Name = "PatchTest")]
+        public IActionResult PatchTest(int id, JsonPatchDocument<testDto> patchDto)
+        {
+            if (patchDto == null || id == 0)
+            {
+                return BadRequest(id);
+            }
+            var person = testStore.testlist.FirstOrDefault(x => x.Id == id);
+            if (person == null)
+            {
+                return BadRequest(id);
+            }
+            patchDto.ApplyTo(person,ModelState);
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             return NoContent();
         }
     }
