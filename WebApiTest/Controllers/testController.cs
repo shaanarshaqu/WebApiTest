@@ -10,11 +10,13 @@ namespace WebApiTest.Controllers
      [ApiController]
     public class testController : ControllerBase
     {
+        Managecupling loosecuplledstore = new Managecupling(new testStore());
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<testDto>> GetTests()
         {
-            return Ok(testStore.testlist);
+            return Ok(loosecuplledstore.dataProvider());
         }
 
 
@@ -34,7 +36,7 @@ namespace WebApiTest.Controllers
             { 
                 return BadRequest(); 
             }
-            var just = testStore.testlist.FirstOrDefault(x => x.Id == id);
+            var just = loosecuplledstore.dataProvider().FirstOrDefault(x => x.Id == id);
             if (just == null) 
             { 
                 return NotFound(); 
@@ -51,11 +53,13 @@ namespace WebApiTest.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public ActionResult<testDto> CreateTest([FromBody]testDto test)
         {
-//            if (!ModelState.IsValid)
-//              {
-//                return BadRequest();
-//            }
-            if(testStore.testlist.FirstOrDefault(x=>x.Name.ToLower() == test.Name.ToLower())!=null)
+            //            if (!ModelState.IsValid)
+            //              {
+            //                return BadRequest();
+            //            }
+            var list = loosecuplledstore.dataProvider();
+
+            if (list.FirstOrDefault(x=>x.Name.ToLower() == test.Name.ToLower())!=null)
             {
                 ModelState.AddModelError("CustomError", "user is already exist");
                 return BadRequest(ModelState);
@@ -68,18 +72,21 @@ namespace WebApiTest.Controllers
             { 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            test.Id = testStore.testlist.Count+1;
-            testStore.testlist.Add(test);
+            
+            test.Id = list.Count+1;
+            list.Add(test);
+            Console.WriteLine($"List count after adding: {list?.Count}");
             return CreatedAtRoute("GetTests", new { id=test.Id },test);
         }
 
 
 
-        [HttpPut("{id:int}")]
+        /*[HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+
         public ActionResult<testDto> EditTest(int id,[FromBody] testDto obj)
         {
             if (id == 0)
@@ -97,9 +104,7 @@ namespace WebApiTest.Controllers
 
 
         [HttpDelete("{id:int}",Name="DeleteTest")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult DeleteTest(int id)
         {
@@ -115,6 +120,9 @@ namespace WebApiTest.Controllers
 
 
         [HttpPatch("{id:int}", Name = "PatchTest")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
         public IActionResult PatchTest(int id, JsonPatchDocument<testDto> patchDto)
         {
             if (patchDto == null || id == 0)
@@ -132,6 +140,6 @@ namespace WebApiTest.Controllers
                 return BadRequest(ModelState);
             }
             return NoContent();
-        }
+        }*/
     }
 }
