@@ -6,7 +6,7 @@ namespace WebApiTest.Models.Dto
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "poda brandha")]
         [MaxLength(100)]
         public string Name { get; set; }
 

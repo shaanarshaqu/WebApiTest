@@ -7,16 +7,22 @@ using Microsoft.AspNetCore.JsonPatch;
 namespace WebApiTest.Controllers
 {
     [Route("api/[controller]")]
-     [ApiController]
+    [ApiController]
     public class testController : ControllerBase
     {
-        Managecupling loosecuplledstore = new Managecupling(new testStore());
+        private readonly IStore _istore;
+        public testController (IStore obj)
+        {
+            _istore= obj;
+        }
+
+        //Managecupling loosecuplledstore = new Managecupling(new testStore());
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<testDto>> GetTests()
         {
-            return Ok(loosecuplledstore.dataProvider());
+            return Ok(_istore.data());
         }
 
 
@@ -36,7 +42,7 @@ namespace WebApiTest.Controllers
             { 
                 return BadRequest(); 
             }
-            var just = loosecuplledstore.dataProvider().FirstOrDefault(x => x.Id == id);
+            var just = _istore.data().FirstOrDefault(x => x.Id == id);
             if (just == null) 
             { 
                 return NotFound(); 
@@ -51,48 +57,48 @@ namespace WebApiTest.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult<testDto> CreateTest([FromBody]testDto test)
+        public ActionResult<testDto> CreateTest([FromBody] testDto test)
         {
             //            if (!ModelState.IsValid)
             //              {
             //                return BadRequest();
             //            }
-            var list = loosecuplledstore.dataProvider();
+            var list = _istore.data();
 
-            if (list.FirstOrDefault(x=>x.Name.ToLower() == test.Name.ToLower())!=null)
+            if (list.FirstOrDefault(x => x.Name.ToLower() == test.Name.ToLower()) != null)
             {
                 ModelState.AddModelError("CustomError", "user is already exist");
                 return BadRequest(ModelState);
             }
-            if (test == null) 
-            { 
+            if (test == null)
+            {
                 return BadRequest(test);
             }
-            if (test.Id > 0) 
-            { 
+            if (test.Id > 0)
+            {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            
-            test.Id = list.Count+1;
+
+            test.Id = list.Count + 1;
             list.Add(test);
             Console.WriteLine($"List count after adding: {list?.Count}");
-            return CreatedAtRoute("GetTests", new { id=test.Id },test);
+            return CreatedAtRoute("GetTests", new { id = test.Id }, test);
         }
 
 
 
-        /*[HttpPut("{id:int}")]
+        [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
 
-        public ActionResult<testDto> EditTest(int id,[FromBody] testDto obj)
+        public ActionResult<testDto> EditTest(int id, [FromBody] testDto obj)
         {
             if (id == 0)
             { return BadRequest(id); }
-            var person = testStore.testlist.FirstOrDefault(x => x.Id == id);
-            if(person == null) 
+            var person = _istore.data().FirstOrDefault(x => x.Id == id);
+            if (person == null)
             {
                 return BadRequest();
             }
@@ -103,18 +109,19 @@ namespace WebApiTest.Controllers
         }
 
 
-        [HttpDelete("{id:int}",Name="DeleteTest")]
+        [HttpDelete("{id:int}", Name = "DeleteTest")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult DeleteTest(int id)
         {
-            int index = testStore.testlist.FindIndex(x=>x.Id == id);
+            var list = _istore.data();
+            int index = list.FindIndex(x => x.Id == id);
             if (index == -1)
             {
                 return NotFound(id);
-               
+
             }
-            testStore.testlist.RemoveAt(index);
+            list.RemoveAt(index);
             return NoContent();
         }
 
@@ -125,21 +132,22 @@ namespace WebApiTest.Controllers
 
         public IActionResult PatchTest(int id, JsonPatchDocument<testDto> patchDto)
         {
+            var list= _istore.data();
             if (patchDto == null || id == 0)
             {
                 return BadRequest(id);
             }
-            var person = testStore.testlist.FirstOrDefault(x => x.Id == id);
+            var person = list.FirstOrDefault(x => x.Id == id);
             if (person == null)
             {
                 return BadRequest(id);
             }
-            patchDto.ApplyTo(person,ModelState);
-            if(!ModelState.IsValid)
+            patchDto.ApplyTo(person, ModelState);
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             return NoContent();
-        }*/
+        }
     }
 }
