@@ -79,7 +79,7 @@ namespace WebApiTest.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            test.Id = list.Count + 1;
+            test.Id = list[list.Count-1].Id + 1;
             list.Add(test);
             Console.WriteLine($"List count after adding: {list?.Count}");
             return CreatedAtRoute("GetTests", new { id = test.Id }, test);
